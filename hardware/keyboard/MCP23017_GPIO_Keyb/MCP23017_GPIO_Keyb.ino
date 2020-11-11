@@ -5,12 +5,14 @@
  * 
  * YenoOrdiSavant 8x8 keyboard
  * 
- * 
+ * TODO : 
+ *  - see $/libraries/Keypad/examples/MultiKey/MultiKey.ino
  */
 
 //====================================================================================
 //                                    Settings
 //====================================================================================
+#define LED 27
 
 //====================================================================================
 //                                    Keyboard
@@ -55,15 +57,68 @@ int pollKeyb() {
   return -1;
 }
 
+//====================================================================================
+//                                    I2C scan
+//====================================================================================
+void scanI2C()
+{
+  byte error, address;
+  int nDevices;
+
+  Serial.println("Scanning...");
+
+  nDevices = 0;
+  for(address = 1; address < 127; address++ ) 
+  {
+    // The i2c_scanner uses the return value of
+    // the Write.endTransmisstion to see if
+    // a device did acknowledge to the address.
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+
+    if (error == 0)
+    {
+      Serial.print("I2C device found at address 0x");
+      if (address<16) 
+        Serial.print("0");
+      Serial.print(address,HEX);
+      Serial.println("  !");
+
+      nDevices++;
+    }
+    else if (error==4) 
+    {
+      Serial.print("Unknow error at address 0x");
+      if (address<16) 
+        Serial.print("0");
+      Serial.println(address,HEX);
+    }    
+  }
+  if (nDevices == 0)
+    Serial.println("No I2C devices found\n");
+  else
+    Serial.println("done\n");
+
+  delay(5000);           // wait 5 seconds for next scan
+}
 
 //====================================================================================
 //                                    Setup
 //====================================================================================
 void setup() {
-
   Serial.begin(115200);
 
+  pinMode(LED, OUTPUT);
+  digitalWrite(LED, LOW);
+
+  digitalWrite(LED, HIGH);
+
+  while( Serial.available() == 0 ) { delay(100); }
+
   setupKeyb();
+  //Wire.begin (21, 22);   // sda= GPIO_21 /scl= GPIO_22
+  Serial.println("Go !");
+  digitalWrite(LED, LOW);
 
 }
 
@@ -101,8 +156,9 @@ int serWrite(int port, char ch) {
 }
 
 int serWrite(int port, char* chs) {
-  if ( port == PORT_HARD ) { Serial.print( chs ); Serial.write( (uint8_t)0x00 ); }
-  bridge.print( chs ); bridge.write( (uint8_t)0x00 );
+  // if ( port == PORT_HARD ) { Serial.print( chs ); Serial.write( (uint8_t)0x00 ); }
+  // bridge.print( chs ); bridge.write( (uint8_t)0x00 );
+  Serial.print( chs ); Serial.write( (uint8_t)0x00 );
 }
 
 int probePort() {
@@ -124,6 +180,10 @@ char kBuff[KEYB_BUFF_LEN+1] = {
 
 void loop()
 {
+//Serial.println("coucou");
+//{ scanI2C(); return; }
+
+
   if ( loopCpt == -1 ) {
     // first time
     loopCpt = 0;
@@ -137,7 +197,7 @@ void loop()
     char chr = serRead(port);
 
     // == KEYB Control ==
-    else if ( chr == 'K' ) {
+    if ( chr == 'K' ) {
       // clear Key buffer
       memset( kBuff, 0x00, KEYB_BUFF_LEN+1 );
 
@@ -160,11 +220,14 @@ void loop()
     return;
   }
 
+  digitalWrite(LED, LOW);
   // ~56msec w/ Arduino ProMini 3.3 8MHz
   int k = pollKeyb();
   if ( k == -1 ) { return; }
 
+  digitalWrite(LED, HIGH);
   kBuff[ currentBufferLen ] = (char)k;
+  Serial.write( (char)k );
 
 }
 

@@ -53,7 +53,8 @@ public:
 		// ,TwoWire(0) -> mandatory on ESP32 version of Wire.h !!!!!
 		// Keypad(userKeymap, row, col, numRows, numCols),TwoWire(0) { i2caddr = address; }
 		// for other MCUs
-		Keypad(userKeymap, row, col, numRows, numCols) { i2caddr = address; }
+		// Keypad(userKeymap, row, col, numRows, numCols) { i2caddr = address; }
+		Keypad(userKeymap, row, col, numRows, numCols),TwoWire(0) { i2caddr = address; }
 
 	// Keypad function
 	void begin(char *userKeymap);
