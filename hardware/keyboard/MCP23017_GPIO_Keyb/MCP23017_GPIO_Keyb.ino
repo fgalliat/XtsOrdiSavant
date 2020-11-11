@@ -178,6 +178,8 @@ char kBuff[KEYB_BUFF_LEN+1] = {
 
 // ===========================================
 
+char* msg;
+
 void loop()
 {
 //Serial.println("coucou");
@@ -189,45 +191,78 @@ void loop()
     loopCpt = 0;
   }
 
+  // int port = probePort();
 
-  int port = probePort();
 
+  // if ( port != PORT_NONE ) {
+  //   char chr = serRead(port);
 
-  if ( port != PORT_NONE ) {
-    char chr = serRead(port);
+  //   // == KEYB Control ==
+  //   if ( chr == 'K' ) {
+  //     // clear Key buffer
+  //     memset( kBuff, 0x00, KEYB_BUFF_LEN+1 );
 
-    // == KEYB Control ==
-    if ( chr == 'K' ) {
-      // clear Key buffer
-      memset( kBuff, 0x00, KEYB_BUFF_LEN+1 );
+  //     return; // skip keyboard reading
+  //   } else if ( chr == 'k' ) {
+  //     // return kBuff content
+  //     serWrite( port, kBuff );
+  //     memset( kBuff, 0x00, KEYB_BUFF_LEN+1 );
 
-      return; // skip keyboard reading
-    } else if ( chr == 'k' ) {
-      // return kBuff content
-      serWrite( port, kBuff );
-      memset( kBuff, 0x00, KEYB_BUFF_LEN+1 );
-
-      return; // ...
-    }
+  //     return; // ...
+  //   }
     
 
-  }
+  // }
 
-  int currentBufferLen = strlen( kBuff );
-  if ( currentBufferLen >= KEYB_BUFF_LEN ) {
-    // Keyboard buffer overflow
-    // stop here ...
-    return;
-  }
+  // int currentBufferLen = strlen( kBuff ); // FIXME : not very efficient
+  // if ( currentBufferLen >= KEYB_BUFF_LEN ) {
+  //   // Keyboard buffer overflow
+  //   // stop here ...
+  //   return;
+  // }
 
   digitalWrite(LED, LOW);
-  // ~56msec w/ Arduino ProMini 3.3 8MHz
-  int k = pollKeyb();
-  if ( k == -1 ) { return; }
+  // // ~56msec w/ Arduino ProMini 3.3 8MHz
+  // int k = pollKeyb();
+  // if ( k == -1 ) { return; }
 
-  digitalWrite(LED, HIGH);
-  kBuff[ currentBufferLen ] = (char)k;
-  Serial.write( (char)k );
+  // digitalWrite(LED, HIGH);
+  // // kBuff[ currentBufferLen ] = (char)k;
+  // Serial.write( (char)k );
+
+if (customKeypad.getKeys())
+    {
+        for (int i=0; i<LIST_MAX; i++)   // Scan the whole key list.
+        {
+            if ( customKeypad.key[i].stateChanged )   // Only find keys that have changed state.
+            {
+                // switch (customKeypad.key[i].kstate) {  // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
+                //     case PRESSED:
+                //     msg = " PRESSED.";
+                // break;
+                //     case HOLD:
+                //     msg = " HOLD.";
+                // break;
+                //     case RELEASED:
+                //     msg = " RELEASED.";
+                // break;
+                //     case IDLE:
+                //     msg = " IDLE.";
+                // }
+                // Serial.print("Key ");
+                // Serial.print(customKeypad.key[i].kchar);
+                // Serial.println(msg);
+
+                switch (customKeypad.key[i].kstate) {  // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
+                    case PRESSED:
+                      // have BETTER RESULT than scanning only one key @ a time
+                      digitalWrite(LED, HIGH);
+                      Serial.print(customKeypad.key[i].kchar);
+                    break;
+                }
+            }
+        }
+    }
 
 }
 
