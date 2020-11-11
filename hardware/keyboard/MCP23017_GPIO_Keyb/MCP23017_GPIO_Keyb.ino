@@ -25,18 +25,38 @@
 
 const byte K_ROWS = 8; // eight rows
 const byte K_COLS = 8; // eight columns
+
+#define ESCP 0x1B
+#define SHFT 0xFF
+#define CTRL 0xFE
+#define BREK 0x03
+
+
 //define the cymbols on the buttons of the keypads
 char hexaKeys[K_ROWS][K_COLS] = {
   // 0    1    2    3    4    5    6    7  
-  { '#',0x03, '2', '4', '6', '8', '0',0x00 }, // 0
-  {0x1B, '1', '3', '5', '7', '9', '^',0x00 }, // 1 -- 0x1B is Esc 
+  { '#',BREK, '2', '4', '6', '8', '0',0x00 }, // 0 -- LOCK/BREAK -> Ctrl-C
+  {ESCP, '1', '3', '5', '7', '9', '^',0x00 }, // 1 -- 0x1B is Esc 
   {0x00, '~', 'z', 'r', 'y', 'i', 'p',0x00 }, // 2
   {0x00, 'q', 's', 'f', 'h', 'k', 'm', '>' }, // 3
-  {0x00, ' ', 'c', 'b', ',', ':',0xFF, '$' }, // 4 -- 0xFF is Shift
-  {0x00,0xFE, 'x', 'v', 'n', ',', '=','\b' }, // 5 -- 0xFE is Ctrl
+  {0x00, ' ', 'c', 'b', ',', ':',SHFT, '$' }, // 4 -- 0xFF is Shift
+  {0x00,CTRL, 'x', 'v', 'n', ';', '=','\b' }, // 5 -- 0xFE is Ctrl (ERASE/AC)
   {0x00, 'w', 'd', 'g', 'j', 'l', '!','\n' }, // 6
   {0x00, 'a', 'e', 't', 'u', 'o', '^', '<' }, // 7
 };
+
+char hexaShiftedKeys[K_ROWS][K_COLS] = {
+  // 0    1    2    3    4    5    6    7  
+  { '#',BREK, 'e','\'', '-', '_', '0',0x00 }, // 0
+  {ESCP, '(', '"', ')', 'e', 'c', '^',0x00 }, // 1
+  {0x00, '~', 'Z', 'R', 'Y', 'I', 'P',0x00 }, // 2
+  {0x00, 'Q', 'S', 'F', 'H', 'K', 'M', '>' }, // 3
+  {0x00, ' ', 'C', 'B', '?', '/',SHFT, '$' }, // 4
+  {0x00,CTRL, 'X', 'V', 'N', '.', '+','\b' }, // 5
+  {0x00, 'W', 'D', 'G', 'J', 'L', 'u','\n' }, // 6
+  {0x00, 'A', 'E', 'T', 'U', 'O', '^', '<' }, // 7
+};
+
 byte rowPins[K_ROWS] = {7, 6, 5, 4, 3, 2, 1, 0}; //connect to the row pinouts of the keypad
 byte colPins[K_COLS] = {15, 14, 13, 12, 11, 10, 9, 8}; //connect to the column pinouts of the keypad
 
@@ -113,11 +133,11 @@ void setup() {
 
   digitalWrite(LED, HIGH);
 
-  while( Serial.available() == 0 ) { delay(100); }
+  // while( Serial.available() == 0 ) { delay(100); }
 
   setupKeyb();
   //Wire.begin (21, 22);   // sda= GPIO_21 /scl= GPIO_22
-  Serial.println("Go !");
+  Serial.println("Keyboard test !");
   digitalWrite(LED, LOW);
 
 }
@@ -180,6 +200,9 @@ char kBuff[KEYB_BUFF_LEN+1] = {
 
 char* msg;
 
+boolean shiftKey = false;
+boolean ctrlKey = false;
+
 void loop()
 {
 //Serial.println("coucou");
@@ -210,7 +233,6 @@ void loop()
 
   //     return; // ...
   //   }
-    
 
   // }
 
@@ -230,8 +252,11 @@ void loop()
   // // kBuff[ currentBufferLen ] = (char)k;
   // Serial.write( (char)k );
 
+// have BETTER RESULT than scanning only one key @ a time
 if (customKeypad.getKeys())
     {
+        digitalWrite(LED, HIGH);
+
         for (int i=0; i<LIST_MAX; i++)   // Scan the whole key list.
         {
             if ( customKeypad.key[i].stateChanged )   // Only find keys that have changed state.
@@ -255,9 +280,36 @@ if (customKeypad.getKeys())
 
                 switch (customKeypad.key[i].kstate) {  // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
                     case PRESSED:
-                      // have BETTER RESULT than scanning only one key @ a time
-                      digitalWrite(LED, HIGH);
-                      Serial.print(customKeypad.key[i].kchar);
+
+                      if ( customKeypad.key[i].kchar == SHFT ) {
+                        shiftKey = true;
+                      } else if ( customKeypad.key[i].kchar == CTRL ) {
+                        ctrlKey = true;
+                      }
+                       else if ( customKeypad.key[i].kchar == ESCP ) {
+                        Serial.println( "Esc" );
+                      } else {
+                        char ch = customKeypad.key[i].kchar;
+                        if ( shiftKey ) {
+                          ch = makeKeymap( hexaShiftedKeys )[ customKeypad.key[i].kcode ];
+                        }
+                        Serial.print(ch);
+                      }
+                    break;
+                    case RELEASED:
+                      if ( customKeypad.key[i].kchar == SHFT ) {
+                        shiftKey = false;
+                      } else if ( customKeypad.key[i].kchar == CTRL ) {
+                        ctrlKey = false;
+                      }
+                    break;
+                    case HOLD:
+                      // if ( customKeypad.key[i].kchar == SHFT ) {
+                      //   Serial.print( "(*)Shift " );
+                      // }
+                      // else if ( customKeypad.key[i].kchar == CTRL ) {
+                      //   Serial.print( "(*)Ctrl " );
+                      // }
                     break;
                 }
             }
