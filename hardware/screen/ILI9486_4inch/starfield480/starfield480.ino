@@ -23,7 +23,7 @@
 // Animates white pixels to simulate flying through a star field
 
 #include <SPI.h>
-#include <TFT_eSPI.h>
+#include <TFT_eSPImoa.h>
 
 // Use hardware SPI
 TFT_eSPI tft = TFT_eSPI();
@@ -52,8 +52,13 @@ void setup() {
   zc = random(256);
   zx = random(256);
 
-  // Serial.begin(115200);
-  Serial.begin(9600);
+  Serial.begin(115200);
+  // Serial.begin(9600);
+
+  #if ILI_4INCH
+   Serial.println("4 inch config");
+  #endif
+
   tft.init();
   tft.setRotation(1);
   tft.fillScreen(TFT_BLACK);
@@ -112,6 +117,9 @@ void loop()
 
  // Calcualte frames per second
   Serial.println(1.0/((t1 - t0)/1000000.0));
+  #if ILI_4INCH
+   Serial.println("4 inch config");
+  #endif  
 }
 
 
