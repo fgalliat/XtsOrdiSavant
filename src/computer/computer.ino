@@ -6,35 +6,42 @@
  * 
  */
 
-#include "hard_screen.h"
-// extern auto tft;
+#include "hard_globals.h"
+
 
 void setup() {
   Serial.begin(115200);
   // Serial.begin(9600);
 
+  pinMode(LED, OUTPUT);
+  digitalWrite(LED, LOW);
+
+  led();
   #if ILI_4INCH
    Serial.println("4 inch config");
   #endif
 
-  tft.init();
-  #if ILI_4INCH
-  tft.setRotation(3);
-  #else
-  tft.setRotation(1);
-  #endif
-  tft.fillScreen(TFT_BLACK);
- 
-  tft.fillRect( 50, 50, 380, 220, TFT_BLUE );
-  tft.setTextSize(1);
+  setupScreen();
+  tft.fillRect( 50, 50, 380, 220, TFT_CYAN );
+  tft.drawRect( 50, 50, 380, 220, TFT_WHITE );
   tft.setCursor(0,0);
   tft.setTextColor( TFT_WHITE );
   tft.println("Hello World");
 
-
+  setupKeyb();
+  led(false);
 }
 
 void loop() {
-    Serial.println("Hello");
-    delay(500);
+    pollKeyb();
+
+
+    int k = readKeyb();
+    if ( k > -1 ) {
+      if ( k == 27 ) {
+        tft.print("<Esc>");
+      } else {
+        tft.write( (char)k );
+      }
+    }
 }
