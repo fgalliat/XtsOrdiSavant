@@ -12,20 +12,6 @@
 // Use hardware SPI
 TFT_eSPI tft = TFT_eSPI();
 
-void cls_tft();
-
-void setupScreen() {
-  tft.init();
-  #if ILI_4INCH
-    tft.setRotation(3);
-  #else
-    tft.setRotation(1);
-  #endif
-  tft.setTextSize(1);
-  tft.setTextColor( TFT_WHITE ); // WHITE - transparent
-  cls_tft();
-}
-
 int ttyCursX = 0;
 int ttyCursY = 0;
 #if ILI_4INCH
@@ -39,6 +25,39 @@ int ttyCursY = 0;
  int ttyFontWidth = 6;
  int ttyFontHeight = 8;
 #endif
+
+uint16_t bgColor = TFT_BLACK;
+uint16_t fgColor = TFT_WHITE;
+bool transparentText = true;
+
+void _applyTTYcursor();
+
+void drawBlankChar() {
+  if ( !transparentText ) { 
+    _applyTTYcursor();
+    tft.write(' ');
+    _applyTTYcursor();
+  } else {
+    tft.fillRect(ttyCursX*ttyFontWidth, ttyCursY*ttyFontHeight, ttyFontWidth, ttyFontHeight, bgColor);
+  }
+}
+
+
+void cls_tft();
+
+void setupScreen() {
+  tft.init();
+  #if ILI_4INCH
+    tft.setRotation(3);
+  #else
+    tft.setRotation(1);
+  #endif
+  tft.setTextSize(1);
+  tft.setTextColor( fgColor ); // WHITE - transparent
+  cls_tft();
+}
+
+
 
 void _applyTTYcursor() {
   tft.setCursor(ttyCursX*ttyFontWidth, ttyCursY*ttyFontHeight);
@@ -55,7 +74,7 @@ void home_tft() {
 }
 
 void cls_tft() {
-  tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(bgColor);
   home_tft();
 }
 
@@ -74,8 +93,7 @@ void _bcksp() {
   } else {
     ttyCursX--;
   }
-  _applyTTYcursor();
-  tft.write(' '); // FIXME : when txtBgTransparent
+  drawBlankChar();
   _applyTTYcursor();
 }
 
