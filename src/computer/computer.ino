@@ -54,12 +54,16 @@ void loop() {
     int key = getch();
     write( (char)key );
 
+    beep(440, 200);
+
     print("login : ");
     char* sharedLine = getline(true, 8);
     print("You typed : "); print(sharedLine); print("\n");
 
     print("password : ");
+    led();
     sharedLine = getline(false, 8);
+    led(false);
     print("You typed : "); print(sharedLine); print("\n");
 
 

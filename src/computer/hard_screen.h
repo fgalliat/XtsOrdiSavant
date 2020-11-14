@@ -31,12 +31,31 @@ void cls_tft() {
   tft.setCursor(0,0);
 }
 
+void _br() {
+  // FIXME : cursor
+  // FIXME : scroll
+  tft.write('\n');
+}
+
+void _bcksp() {
+  // FIXME : cursor
+  tft.write('\b');
+}
+
+char lastCh = 0x00;
 void write_tft(char ch) {
-  if ( ch == '\r' ) {}
-  if ( ch == '\n' ) {}
-  if ( ch == '\b' ) {}
-  if ( ch == 27 ) {}
-  tft.write(ch);
+  if ( ch == '\r' ) {
+    _br();
+  }
+  else if ( ch == '\n' ) {
+    if ( lastCh != '\r' ) {
+      _br();
+    }
+  }
+  else if ( ch == '\b' ) { _bcksp(); }
+  else if ( ch == 27 )   { tft.write('^'); } // FIXME : VT100
+  else tft.write(ch);
+  lastCh = ch;
 }
 
 void print_tft(char* str) {

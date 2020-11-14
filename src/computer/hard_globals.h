@@ -8,6 +8,8 @@
 
 #include "hard_keyboard.h"
 
+#include "hard_speaker.h"
+
 
 #define LED 27
 
