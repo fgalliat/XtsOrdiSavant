@@ -32,6 +32,11 @@ void setup() {
   con_puts("Hello World\n");
 
   setupKeyb();
+
+  bool ok = setupFs();
+  if (ok) { con_puts("SD OK\n"); }
+  else    { con_puts("SD Failed\n"); }
+
   led(false);
 }
 

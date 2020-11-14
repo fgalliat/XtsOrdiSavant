@@ -10,6 +10,8 @@
 
 #include "hard_speaker.h"
 
+#include "hard_fs.h"
+
 
 #define LED 27
 
