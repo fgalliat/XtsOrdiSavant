@@ -32,11 +32,17 @@ void cls_tft() {
 }
 
 void write_tft(char ch) {
+  if ( ch == '\r' ) {}
+  if ( ch == '\n' ) {}
+  if ( ch == '\b' ) {}
+  if ( ch == 27 ) {}
   tft.write(ch);
 }
 
 void print_tft(char* str) {
-  tft.print(str);
+  //tft.print(str);
+  int t = strlen(str);
+  for(int i=0; i < t; i++) { write_tft(str[i]); }
 }
 
 // TODO : refacto in soft_screen.h ?

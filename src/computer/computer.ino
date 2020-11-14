@@ -9,6 +9,13 @@
 #include "hard_globals.h"
 
 
+void getline_echo(char ch, int index) {
+  write(ch);
+}
+
+
+
+
 void setup() {
   Serial.begin(115200);
   // Serial.begin(9600);
@@ -33,15 +40,28 @@ void setup() {
 }
 
 void loop() {
-    pollKeyb();
+    // pollKeyb();
+    // // ... < code >
+    // int k = readKeyb();
+    // if ( k > -1 ) {
+    //   if ( k == 27 ) {
+    //     tft.print("<Esc>");
+    //   } else {
+    //     tft.write( (char)k );
+    //   }
+    // }
+    print("Strike any key : ");
+    int key = getch();
+    write( (char)key );
+
+    print("login : ");
+    char* sharedLine = getline(true, 8);
+    print("You typed : "); print(sharedLine); print("\n");
+
+    print("password : ");
+    sharedLine = getline(false, 8);
+    print("You typed : "); print(sharedLine); print("\n");
 
 
-    int k = readKeyb();
-    if ( k > -1 ) {
-      if ( k == 27 ) {
-        tft.print("<Esc>");
-      } else {
-        tft.write( (char)k );
-      }
-    }
+
 }
