@@ -77,7 +77,7 @@ char _keyBuffer[KEYB_BUFF_LEN+1];
 int _keyBufferCursor = -1; // not initialized
 
 void _appendToKBBuffer(char ch) {
-    if ( _keyBufferCursor < 0 ) { memset(_keyBuffer, 0x00, KEYB_BUFF_LEN+1); }
+    if ( _keyBufferCursor < 0 ) { memset(_keyBuffer, 0x00, KEYB_BUFF_LEN+1); _keyBufferCursor = 0; }
     if ( _keyBufferCursor >= KEYB_BUFF_LEN ) {
         // overflow ...
         return;
@@ -209,6 +209,11 @@ bool available_kb() {
 // TODO : may duplicate these functions for Serial, WiFi, ...
 int getch() {
   return getch_kb();
+}
+int getche() {
+  int ch = getch();
+  if ( ch > 0 ) { getline_echo( (char)ch, 0 ); }
+  return ch;
 }
 /** returns NULL if Ctrl-C 
  * beware the returned line ismemory shared, can't free(..) or delete(..)

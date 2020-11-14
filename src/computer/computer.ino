@@ -10,7 +10,7 @@
 
 
 void getline_echo(char ch, int index) {
-  write(ch);
+  con_putc(ch);
 }
 
 
@@ -34,40 +34,29 @@ void setup() {
   setupScreen();
   tft.fillRect( 50, 50, 380, 220, TFT_CYAN );
   tft.drawRect( 50, 50, 380, 220, TFT_WHITE );
-  gotoXY(0,0);
-  print("Hello World\n");
+  con_gotoXY(0,0);
+  con_puts("Hello World\n");
 
   setupKeyb();
   led(false);
 }
 
 void loop() {
-    // pollKeyb();
-    // // ... < code >
-    // int k = readKeyb();
-    // if ( k > -1 ) {
-    //   if ( k == 27 ) {
-    //     tft.print("<Esc>");
-    //   } else {
-    //     tft.write( (char)k );
-    //   }
-    // }
-    print("Strike any key : ");
-    int key = getch();
-    write( (char)key );
-    beep(440, 200);
+  
+    con_puts("Strike any key : ");
+    int key = getche();
+    bell();
 
-    print("login : ");
+    con_puts("login : ");
     char* sharedLine = getline(true, 8);
-    print("You typed : "); print(sharedLine); print("\n");
+    con_puts("You typed : "); con_puts(sharedLine); con_puts("\n");
 
-    print("password : ");
+    con_puts("password : ");
     led();
     sharedLine = getline(false, 8);
     led(false);
-    print("You typed : "); print(sharedLine); print("\n");
+    con_puts("You typed : "); con_puts(sharedLine); con_puts("\n");
 
-    print("\n\n\n == EOF ==");
-    getch();
+    con_puts("\n\n\n == EOF ==\n");
 
 }

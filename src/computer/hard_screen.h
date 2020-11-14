@@ -130,8 +130,8 @@ void print_tft(char* str) {
 
 // TODO : refacto in soft_screen.h ?
 
-void cls() { cls_tft(); }
-void gotoXY(int x, int y) { gotoXY_tft(x,y); }
-void write(char ch) { write_tft(ch); } 
-void print(char* str) { print_tft(str); } 
+void con_cls() { cls_tft(); }
+void con_gotoXY(int x, int y) { gotoXY_tft(x,y); }
+void con_putc(char ch) { write_tft(ch); } 
+void con_puts(char* str) { print_tft(str); } 
 
