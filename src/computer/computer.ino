@@ -59,4 +59,12 @@ void loop() {
 
     con_puts("\n\n\n == EOF ==\n");
 
+    con_puts(":: Content of / ::\n");
+    fs_ls("/");
+    con_puts(":: -EOF -::\n");
+
+    con_puts(":: Content of /hello.txt ::\n");
+    fs_cat("/hello.txt");
+    con_puts(":: -EOF -::\n");
+
 }

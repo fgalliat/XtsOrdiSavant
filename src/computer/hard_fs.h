@@ -35,3 +35,39 @@ bool setupFs() {
     }
     return true;
 }
+
+SdFile file;
+void con_puts(char* str);
+void con_putc(char c);
+
+bool fs_ls(char* path) {
+  uint32_t pos = 0;
+  SD.chdir(path);
+
+  char name[13]; memset(name, 0x00, 13);
+  while (1) {
+    SD.vwd()->seekSet(pos);
+    if (!file.openNext(SD.vwd(), O_READ)) break;
+    pos = SD.vwd()->curPosition();
+    bool z = file.isDir();
+    // file.getFilename(name);
+    file.getName(name, 13);
+    con_puts(name); con_puts("\n");
+    file.close();
+    // if (z) ls(name);
+  }
+
+  return true;
+}
+
+bool fs_cat(char* path) {
+    File f = SD.open( path, O_READ );
+    if (!f) {
+        return false;
+    }
+    // FIXME : read in a buffer instead of byte per byte
+    while( f.available() ) {
+        con_putc( f.read() );
+    }
+    return true;
+}
