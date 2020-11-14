@@ -44,16 +44,17 @@ void setup() {
 void loop() {
   
     con_puts("Strike any key : ");
-    int key = getche();
+    int key = con_getche();
+    con_putc('\n');
     bell();
 
     con_puts("login : ");
-    char* sharedLine = getline(true, 8);
+    char* sharedLine = con_getline(true, 8);
     con_puts("You typed : "); con_puts(sharedLine); con_puts("\n");
 
     con_puts("password : ");
     led();
-    sharedLine = getline(false, 8);
+    sharedLine = con_getline(false, 8);
     led(false);
     con_puts("You typed : "); con_puts(sharedLine); con_puts("\n");
 
