@@ -204,25 +204,3 @@ bool available_kb() {
   return _keyBufferCursor > 0;
 }
 
-// TODO : refacto in soft_keyboard.h ?
-
-// TODO : may duplicate these functions for Serial, WiFi, ...
-int con_getch() {
-  return getch_kb();
-}
-int con_getche() {
-  int ch = con_getch();
-  if ( ch > 0 ) { getline_echo( (char)ch, 0 ); }
-  return ch;
-}
-/** returns NULL if Ctrl-C 
- * beware the returned line ismemory shared, can't free(..) or delete(..)
- * need to strcpy() elsewhere to save content
-*/
-char* con_getline(bool echo=true, int maxLen=MAX_KB_LINE_LEN) {
-  return getline_kb(echo, maxLen);
-}
-
-bool con_kbhit() {
-  return available_kb();
-}

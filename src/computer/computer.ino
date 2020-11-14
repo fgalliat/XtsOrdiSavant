@@ -7,13 +7,7 @@
  */
 
 #include "hard_globals.h"
-
-
-void getline_echo(char ch, int index) {
-  con_putc(ch);
-}
-
-
+#include "soft_globals.h"
 
 
 void setup() {
