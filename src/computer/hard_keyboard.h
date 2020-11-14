@@ -23,6 +23,8 @@ const byte K_COLS = 8; // eight columns
 #define SHFT 0xFF
 #define CTRL 0xFE
 #define BREK 0x03
+#define BKSP '\b'
+#define RETN '\r'
 
 
 //define the cymbols on the buttons of the keypads
@@ -34,7 +36,7 @@ char hexaKeys[K_ROWS][K_COLS] = {
   {0x00, 'q', 's', 'f', 'h', 'k', 'm', '>' }, // 3
   {0x00, ' ', 'c', 'b', ',', ':',SHFT, '$' }, // 4 -- 0xFF is Shift
   {0x00,CTRL, 'x', 'v', 'n', ';', '=','\b' }, // 5 -- 0xFE is Ctrl (ERASE/AC)
-  {0x00, 'w', 'd', 'g', 'j', 'l', '!','\n' }, // 6
+  {0x00, 'w', 'd', 'g', 'j', 'l', '!',RETN }, // 6
   {0x00, 'a', 'e', 't', 'u', 'o', '^', '<' }, // 7
 };
 
@@ -46,7 +48,7 @@ char hexaShiftedKeys[K_ROWS][K_COLS] = {
   {0x00, 'Q', 'S', 'F', 'H', 'K', 'M', '>' }, // 3
   {0x00, ' ', 'C', 'B', '?', '/',SHFT, '$' }, // 4
   {0x00,CTRL, 'X', 'V', 'N', '.', '+','\b' }, // 5
-  {0x00, 'W', 'D', 'G', 'J', 'L', 'u','\n' }, // 6
+  {0x00, 'W', 'D', 'G', 'J', 'L', 'u',RETN }, // 6
   {0x00, 'A', 'E', 'T', 'U', 'O', '^', '<' }, // 7
 };
 
@@ -69,7 +71,7 @@ boolean ctrlKey = false;
 char _keyBuffer[KEYB_BUFF_LEN+1];
 int _keyBufferCursor = -1; // not initialized
 
-void _appendToBuffer(char ch) {
+void _appendToKBBuffer(char ch) {
     if ( _keyBufferCursor < 0 ) { memset(_keyBuffer, 0x00, KEYB_BUFF_LEN+1); }
     if ( _keyBufferCursor >= KEYB_BUFF_LEN ) {
         // overflow ...
@@ -78,9 +80,14 @@ void _appendToBuffer(char ch) {
     _keyBuffer[ _keyBufferCursor++ ] = ch;
 }
 
-int _readBuffer() {
+int _readKBBuffer() {
     if ( _keyBufferCursor <= 0 ) { return -1; }
     return _keyBuffer[ --_keyBufferCursor ];
+}
+
+void _flushKBBuffer() {
+  if ( _keyBufferCursor <= 0 ) return;
+  memset(_keyBuffer, 0x00, _keyBufferCursor);
 }
 
 
@@ -102,14 +109,14 @@ void pollKeyb() {
                       }
                        else if ( customKeypad.key[i].kchar == ESCP ) {
                         Serial.println( "Esc" );
-                        _appendToBuffer( 27 );
+                        _appendToKBBuffer( 27 );
                       } else {
                         char ch = customKeypad.key[i].kchar;
                         if ( shiftKey ) {
                           ch = makeKeymap( hexaShiftedKeys )[ customKeypad.key[i].kcode ];
                         }
                         Serial.print(ch);
-                        _appendToBuffer( ch );
+                        _appendToKBBuffer( ch );
                       }
                     break;
                     case RELEASED:
@@ -133,5 +140,66 @@ void pollKeyb() {
 
 int readKeyb(bool poll=false) {
     if ( poll ) { pollKeyb(); }
-    return _readBuffer();
+    return _readKBBuffer();
+}
+
+int getch_kb() {
+  char ch = 0x00;
+  while( ch == 0x00 ) {
+    pollKeyb();
+    ch = _readKBBuffer();
+  } 
+  _flushKBBuffer(); // even if typed 2 keys, keep only 1 char
+  return ch;
+}
+
+// beware of Esc, BackSpace (& cursor / Vs index > 0), CR Vs LF
+void getline_echo(char ch, int index);
+
+#define MAX_KB_LINE_LEN 255
+char _kbLine[MAX_KB_LINE_LEN+1];
+int _kbLineCursor = 0;
+
+char* getline_kb(bool echo=true, int maxLen=MAX_KB_LINE_LEN) {
+  memset(_kbLine, 0x00, MAX_KB_LINE_LEN+1);
+  _kbLineCursor = 0;
+  char ch = 0x00;
+  while( true ) {
+    pollKeyb();
+    ch = _readKBBuffer();
+    if ( ch == BREK ) { 
+      if ( echo ) { getline_echo('^', _kbLineCursor); getline_echo('C', _kbLineCursor+1); }
+      _flushKBBuffer(); 
+      return NULL; 
+    }
+    else if ( ch == BKSP ) {
+      if ( _kbLineCursor > 0 ) {
+        if (echo) getline_echo('\b', _kbLineCursor);
+        _kbLine[ --_kbLineCursor ] = 0x00;
+      }
+    }
+    else if ( ch == RETN ) {
+      if (echo) getline_echo('\r', _kbLineCursor);
+      break;
+    }
+    else {
+      if ( _kbLineCursor < maxLen-1 ) {
+        if (echo) getline_echo(ch, _kbLineCursor);
+        _kbLine[ _kbLineCursor++ ] = ch;
+      } // else : other spe keys must be allowed
+    }
+  }
+  _flushKBBuffer();
+  return _kbLine;
+}
+
+// TODO : refacto in soft_keyboard.h ?
+
+// TODO : may duplicate these functions for Serial, WiFi, ...
+int getch() {
+  return getch_kb();
+}
+/** returns NULL if Ctrl-C */
+char* getline(bool echo=true, int maxLen=MAX_KB_LINE_LEN) {
+  return getline_kb(echo, maxLen);
 }

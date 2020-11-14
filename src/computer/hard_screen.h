@@ -12,7 +12,7 @@
 // Use hardware SPI
 TFT_eSPI tft = TFT_eSPI();
 
-void cls();
+void cls_tft();
 
 void setupScreen() {
   tft.init();
@@ -23,10 +23,28 @@ void setupScreen() {
   #endif
   tft.setTextSize(1);
   tft.setTextColor( TFT_WHITE ); // WHITE - transparent
-  cls();
+  cls_tft();
 }
 
-void cls() {
+void cls_tft() {
   tft.fillScreen(TFT_BLACK);
   tft.setCursor(0,0);
 }
+
+void write_tft(char ch) {
+  tft.write(ch);
+}
+
+void print_tft(char* str) {
+  tft.print(str);
+}
+
+// TODO : refacto in soft_screen.h ?
+
+void cls() {
+  cls_tft();
+}
+
+void write(char ch) { write_tft(ch); } 
+void print(char* str) { print_tft(str); } 
+
