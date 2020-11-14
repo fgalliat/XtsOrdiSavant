@@ -4,6 +4,11 @@
  * Xtase - fgalliat @Nov 2020
  * 
  * MCP 23017 GPIO/I2C & 8x8 OrdiSavant builtin keyboard (AZERTY)
+ * 
+ * TODO : 
+ * 
+ *  - key repeat
+ * 
  */
 
 
@@ -168,7 +173,7 @@ char* getline_kb(bool echo=true, int maxLen=MAX_KB_LINE_LEN) {
     pollKeyb();
     ch = _readKBBuffer();
     if ( ch <= 0 ) { continue; }
-    
+
     if ( ch == BREK ) { 
       if ( echo ) { getline_echo('^', _kbLineCursor); getline_echo('C', _kbLineCursor+1); }
       _flushKBBuffer(); 
@@ -205,7 +210,10 @@ bool available_kb() {
 int getch() {
   return getch_kb();
 }
-/** returns NULL if Ctrl-C */
+/** returns NULL if Ctrl-C 
+ * beware the returned line ismemory shared, can't free(..) or delete(..)
+ * need to strcpy() elsewhere to save content
+*/
 char* getline(bool echo=true, int maxLen=MAX_KB_LINE_LEN) {
   return getline_kb(echo, maxLen);
 }

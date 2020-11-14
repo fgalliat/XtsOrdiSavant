@@ -34,9 +34,8 @@ void setup() {
   setupScreen();
   tft.fillRect( 50, 50, 380, 220, TFT_CYAN );
   tft.drawRect( 50, 50, 380, 220, TFT_WHITE );
-  tft.setCursor(0,0);
-  tft.setTextColor( TFT_WHITE );
-  tft.println("Hello World");
+  gotoXY(0,0);
+  print("Hello World\n");
 
   setupKeyb();
   led(false);
@@ -56,10 +55,6 @@ void loop() {
     print("Strike any key : ");
     int key = getch();
     write( (char)key );
-    // tft.print( key );
-    // Serial.print( key );
-    // delay(500);
-
     beep(440, 200);
 
     print("login : ");
@@ -72,6 +67,7 @@ void loop() {
     led(false);
     print("You typed : "); print(sharedLine); print("\n");
 
-
+    print("\n\n\n == EOF ==");
+    getch();
 
 }
