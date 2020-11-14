@@ -35,3 +35,5 @@ void beep(int freq, int duration) {
     delay(duration);
     buzz_noTone();
 }
+
+void bell() { beep(440, 200); }

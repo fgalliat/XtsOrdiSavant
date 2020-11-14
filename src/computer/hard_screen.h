@@ -42,6 +42,9 @@ void _bcksp() {
   tft.write('\b');
 }
 
+// forward symbols
+void bell();
+
 char lastCh = 0x00;
 void write_tft(char ch) {
   if ( ch == '\r' ) {
@@ -54,6 +57,7 @@ void write_tft(char ch) {
   }
   else if ( ch == '\b' ) { _bcksp(); }
   else if ( ch == 27 )   { tft.write('^'); } // FIXME : VT100
+  else if ( ch == 7 )    { bell(); }
   else tft.write(ch);
   lastCh = ch;
 }

@@ -24,6 +24,9 @@ void setup() {
   digitalWrite(LED, LOW);
 
   led();
+  setupBuzzer();
+
+  // do IS true !
   #if ILI_4INCH
    Serial.println("4 inch config");
   #endif
@@ -53,6 +56,9 @@ void loop() {
     print("Strike any key : ");
     int key = getch();
     write( (char)key );
+    // tft.print( key );
+    // Serial.print( key );
+    // delay(500);
 
     beep(440, 200);
 

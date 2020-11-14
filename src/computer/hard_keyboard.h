@@ -144,8 +144,8 @@ int readKeyb(bool poll=false) {
 }
 
 int getch_kb() {
-  char ch = 0x00;
-  while( ch == 0x00 ) {
+  int ch = 0;
+  while( ch <= 0 ) {
     pollKeyb();
     ch = _readKBBuffer();
   } 
@@ -163,10 +163,12 @@ int _kbLineCursor = 0;
 char* getline_kb(bool echo=true, int maxLen=MAX_KB_LINE_LEN) {
   memset(_kbLine, 0x00, MAX_KB_LINE_LEN+1);
   _kbLineCursor = 0;
-  char ch = 0x00;
+  int ch = 0;
   while( true ) {
     pollKeyb();
     ch = _readKBBuffer();
+    if ( ch <= 0 ) { continue; }
+    
     if ( ch == BREK ) { 
       if ( echo ) { getline_echo('^', _kbLineCursor); getline_echo('C', _kbLineCursor+1); }
       _flushKBBuffer(); 
@@ -193,6 +195,10 @@ char* getline_kb(bool echo=true, int maxLen=MAX_KB_LINE_LEN) {
   return _kbLine;
 }
 
+bool available_kb() {
+  return _keyBufferCursor > 0;
+}
+
 // TODO : refacto in soft_keyboard.h ?
 
 // TODO : may duplicate these functions for Serial, WiFi, ...
@@ -202,4 +208,8 @@ int getch() {
 /** returns NULL if Ctrl-C */
 char* getline(bool echo=true, int maxLen=MAX_KB_LINE_LEN) {
   return getline_kb(echo, maxLen);
+}
+
+bool kbHit() {
+  return available_kb();
 }
