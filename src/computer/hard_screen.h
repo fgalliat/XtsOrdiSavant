@@ -85,21 +85,25 @@ void renderTtyMemLine(int y) {
   if ( ttyMemLines[y] == 0 ) {
     // FIXME : coords
     tft.fillRect(0, y*ttyFontHeight, 480, ttyFontHeight, bgColor);
+    // Serial.printf("Line %d is empty \r\n", y);
     return;
   }
   if ( transparentText ) {
     // FIXME : coords - do eraseUntilEOL()
+    //tft.fillRect(0, y*ttyFontHeight, 480, ttyFontHeight, TFT_PINK);
     tft.fillRect(0, y*ttyFontHeight, 480, ttyFontHeight, bgColor);
   }
-  uint8_t* line = &ttyMem[ (ttyWidth*y) ];
-  tft.setCursor(0, ttyCursY*ttyFontHeight);
+  uint8_t* line = &ttyMem[ (ttyWidth*y)+0 ];
+  tft.setCursor(0, y*ttyFontHeight);
   for(int x=0; x < ttyWidth; x++) {
     uint8_t ch = line[x];
     if ( ch == 0x00 ) { tft.write(' '); } // FIXME : do better but inc tft cursor
     else {
       tft.write(ch);
+      // Serial.write(ch);
     } 
   }
+  // Serial.write("\r\n");
 }
 
 void renderTtyMem() {

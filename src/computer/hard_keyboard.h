@@ -63,8 +63,11 @@ byte colPins[K_COLS] = {15, 14, 13, 12, 11, 10, 9, 8}; //connect to the column p
 //initialize an instance of class NewKeypad
 Keypad_MC17 customKeypad( makeKeymap(hexaKeys), rowPins, colPins, K_ROWS, K_COLS, KEYB_I2CADDR ); 
 
+void pollKeyb();
+
 void setupKeyb() {
     customKeypad.begin();
+    pollKeyb();
 }
 
 boolean shiftKey = false;
