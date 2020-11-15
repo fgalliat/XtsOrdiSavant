@@ -15,35 +15,24 @@ TFT_eSPI tft = TFT_eSPI();
 int ttyCursX = 0;
 int ttyCursY = 0;
 #if ILI_4INCH
- int ttyWidth = 80;
- int ttyHeight = 40;
- int ttyFontWidth = 6;
- int ttyFontHeight = 8;
+ const int ttyWidth = 80;
+ const int ttyHeight = 40;
+ const int ttyFontWidth = 6;
+ const int ttyFontHeight = 8;
 #else
- int ttyWidth = 53;
- int ttyHeight = 30;
- int ttyFontWidth = 6;
- int ttyFontHeight = 8;
+ const int ttyWidth = 53;
+ const int ttyHeight = 30;
+ const int ttyFontWidth = 6;
+ const int ttyFontHeight = 8;
 #endif
 
 uint16_t bgColor = TFT_BLACK;
 uint16_t fgColor = TFT_WHITE;
 bool transparentText = true;
 
-void _applyTTYcursor();
-
-void drawBlankChar() {
-  if ( !transparentText ) { 
-    _applyTTYcursor();
-    tft.write(' ');
-    _applyTTYcursor();
-  } else {
-    tft.fillRect(ttyCursX*ttyFontWidth, ttyCursY*ttyFontHeight, ttyFontWidth, ttyFontHeight, bgColor);
-  }
-}
-
 
 void cls_tft();
+void initTtyMem();
 
 void setupScreen() {
   tft.init();
@@ -55,13 +44,85 @@ void setupScreen() {
   tft.setTextSize(1);
   tft.setTextColor( fgColor ); // WHITE - transparent
   cls_tft();
+  initTtyMem();
 }
-
-
 
 void _applyTTYcursor() {
   tft.setCursor(ttyCursX*ttyFontWidth, ttyCursY*ttyFontHeight);
 }
+
+void drawBlankChar() {
+  if ( !transparentText ) { 
+    _applyTTYcursor();
+    tft.write(' ');
+    _applyTTYcursor();
+  } else {
+    tft.fillRect(ttyCursX*ttyFontWidth, ttyCursY*ttyFontHeight, ttyFontWidth, ttyFontHeight, bgColor);
+  }
+}
+
+// =======================================
+// || Scrolling Section                 ||
+// =======================================
+const int ttyMemSize = ttyWidth*ttyHeight;
+uint8_t ttyMem[ttyWidth*ttyHeight];
+uint8_t ttyMemLines[ttyHeight];
+bool ttyMemInited = false;
+
+void initTtyMem() {
+  ttyMemInited = false;
+  memset(ttyMem, 0x00, ttyMemSize);
+  memset(ttyMemLines, 0x00, ttyHeight);
+  ttyMemInited = true;
+}
+
+void setTtyMemChar(int x, int y, char ch) {
+  ttyMem[ (ttyWidth*y)+x ] = ch;
+  ttyMemLines[y] = 1; // @least : lines is 'dirty'
+}
+
+void renderTtyMemLine(int y) {
+  if ( ttyMemLines[y] == 0 ) {
+    // FIXME : coords
+    tft.fillRect(0, y*ttyFontHeight, 480, ttyFontHeight, bgColor);
+    return;
+  }
+  if ( transparentText ) {
+    // FIXME : coords - do eraseUntilEOL()
+    tft.fillRect(0, y*ttyFontHeight, 480, ttyFontHeight, bgColor);
+  }
+  uint8_t* line = &ttyMem[ (ttyWidth*y) ];
+  tft.setCursor(0, ttyCursY*ttyFontHeight);
+  for(int x=0; x < ttyWidth; x++) {
+    uint8_t ch = line[x];
+    if ( ch == 0x00 ) { tft.write(' '); } // FIXME : do better but inc tft cursor
+    else {
+      tft.write(ch);
+    } 
+  }
+}
+
+void renderTtyMem() {
+  for(int y=0; y < ttyHeight; y++) {
+    renderTtyMemLine(y);
+  }
+  _applyTTYcursor();
+}
+
+void scrollUp() {
+  memmove( &ttyMem[0], &ttyMem[ttyWidth], (ttyWidth * (ttyHeight-1)) );
+  memset( &ttyMem[ ttyWidth * (ttyHeight-1)], 0x00, ttyWidth );
+
+  memmove( &ttyMemLines[0], &ttyMemLines[1], (ttyHeight-1) );
+  ttyMemLines[(ttyHeight-1)] = 0; // beware w/ that -> may need to set dirty ?
+
+  renderTtyMem();
+}
+
+
+// =======================================
+// || Console Section                   ||
+// =======================================
 
 void gotoXY_tft(int x, int y) {
   ttyCursX = x;
@@ -115,6 +176,7 @@ void write_tft(char ch) {
   else if ( ch == 27 )   { tft.write('^'); } // FIXME : VT100
   else {
     tft.write(ch);
+    setTtyMemChar(ttyCursX, ttyCursY, ch);
     ttyCursX++;
     if ( ttyCursX >= ttyWidth ) {
       _br();

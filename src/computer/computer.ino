@@ -67,4 +67,6 @@ void loop() {
     fs_cat("/hello.txt");
     con_puts(":: -EOF -::\n");
 
+    scrollUp();
+
 }
